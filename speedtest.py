@@ -689,6 +689,23 @@ class SpeedtestResults(object):
 
     def json(self, pretty=False):
         """Return data in JSON format"""
+        args = parse_args()
+
+        if args.save:
+            if not os.path.isfile(args.save+'.json'):
+                with open(args.save+'.json', mode='w') as f:
+                    json.dump([], f)
+                with open(args.save+'.json', mode='r') as feedsjson:
+                    feeds = json.load(feedsjson)
+                with open(args.save+'.json', 'w') as feedsjson:
+                    feeds.append(self.dict())
+                    json.dump(feeds, feedsjson)
+            else:
+                with open(args.save+'.json', mode='r') as feedsjson:
+                    feeds = json.load(feedsjson)
+                with open(args.save+'.json', 'w') as feedsjson:
+                    feeds.append(self.dict())
+                    json.dump(feeds, feedsjson)
 
         kwargs = {}
         if pretty:
@@ -1417,17 +1434,6 @@ def shell():
     elif args.csv:
         print_(results.csv(delimiter=args.csv_delimiter))
     elif args.json:
-        # if args.save:
-        #     if not os.path.isfile(args.save+'.json'):
-        #         with open(args.save+'.json', mode='ab+', encoding='utf-8') as f:
-        #             json.dump([], f)
-        #         with open(args.save+'.json') as f:
-        #             data = json.load(f)
-        #         data.update(results.json())
-        #         with open('test.json', 'w') as f:
-        #             f.write(data, f)
-        #     else:
-        #         # file exist stuff
         print_(results.json())
 
     if args.share:
