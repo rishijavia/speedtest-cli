@@ -20,11 +20,13 @@ import re
 import csv
 import sys
 import math
+import time
 import errno
 import signal
 import socket
 import timeit
 import datetime
+import schedule
 import platform
 import threading
 import xml.parsers.expat
@@ -281,6 +283,9 @@ class SpeedtestUploadTimeout(SpeedtestException):
 
 class SpeedtestBestServerFailure(SpeedtestException):
     """Unable to determine best server"""
+
+class FormatTypeMissing():
+    """Unable to set format type, make sure you have selected either --json or --csv"""
 
 
 class GzipDecodedResponse(GZIP_BASE):
@@ -1217,8 +1222,10 @@ def parse_args():
     parser.add_argument('--list', action='store_true',
                         help='Display a list of speedtest.net servers '
                              'sorted by distance')
+    parser.add_argument('--repeat', type=PARSER_TYPE_INT, help='Number of minutes to autorun the test')
     parser.add_argument('--server', help='Specify a server ID to test against',
                         type=PARSER_TYPE_INT)
+    parser.add_argument('--save', type=PARSER_TYPE_STR, help='File name where you want to save the results')
     parser.add_argument('--mini', help='URL of the Speedtest Mini server')
     parser.add_argument('--source', help='Source IP address to bind to')
     parser.add_argument('--timeout', default=10, type=PARSER_TYPE_INT,
@@ -1255,6 +1262,9 @@ def validate_optional_args(args):
         if getattr(args, arg, False) and info[1] is None:
             raise SystemExit('%s is not installed. --%s is '
                              'unavailable' % (info[0], arg))
+    if getattr(args, 'save'):
+        if getattr(args, 'json') == getattr(args, 'csv'):
+            raise SystemExit('Please specify data format by specifying --json or --csv')
 
 
 def printer(string, quiet=False, debug=False, **kwargs):
@@ -1407,6 +1417,16 @@ def shell():
     elif args.csv:
         print_(results.csv(delimiter=args.csv_delimiter))
     elif args.json:
+        if args.save:
+            if not os.path.isfile(args.save+'.json'):
+                with open(args.save+'.json', mode='w', encoding='utf-8') as f:
+                    json.dump([], f)
+                with open(DATA_FILENAME, mode='w', encoding='utf-8') as feedsjson:
+                    entry = {'name': args.name, 'url': args.url}
+                    feeds.append(entry)
+                    json.dump(feeds, feedsjson)
+            else:
+                # file exist stuff
         print_(results.json())
 
     if args.share:
@@ -1415,7 +1435,15 @@ def shell():
 
 def main():
     try:
-        shell()
+        args = parse_args()
+        if args.repeat:
+            shell()
+            schedule.every(args.repeat).minutes.do(shell)
+            while 1:
+                schedule.run_pending()
+                time.sleep(1)
+        else:
+            shell()
     except KeyboardInterrupt:
         print_('\nCancelling...')
     except (SpeedtestException, SystemExit):
