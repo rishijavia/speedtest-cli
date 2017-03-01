@@ -1417,16 +1417,17 @@ def shell():
     elif args.csv:
         print_(results.csv(delimiter=args.csv_delimiter))
     elif args.json:
-        if args.save:
-            if not os.path.isfile(args.save+'.json'):
-                with open(args.save+'.json', mode='w', encoding='utf-8') as f:
-                    json.dump([], f)
-                with open(DATA_FILENAME, mode='w', encoding='utf-8') as feedsjson:
-                    entry = {'name': args.name, 'url': args.url}
-                    feeds.append(entry)
-                    json.dump(feeds, feedsjson)
-            else:
-                # file exist stuff
+        # if args.save:
+        #     if not os.path.isfile(args.save+'.json'):
+        #         with open(args.save+'.json', mode='ab+', encoding='utf-8') as f:
+        #             json.dump([], f)
+        #         with open(args.save+'.json') as f:
+        #             data = json.load(f)
+        #         data.update(results.json())
+        #         with open('test.json', 'w') as f:
+        #             f.write(data, f)
+        #     else:
+        #         # file exist stuff
         print_(results.json())
 
     if args.share:
