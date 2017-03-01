@@ -691,19 +691,19 @@ class SpeedtestResults(object):
         """Return data in JSON format"""
         args = parse_args()
 
-        if args.save:
-            if not os.path.isfile(args.save+'.json'):
-                with open(args.save+'.json', mode='w') as f:
+        if args.filename:
+            if not os.path.isfile(args.filename+'.json'):
+                with open(args.filename+'.json', mode='w') as f:
                     json.dump([], f)
-                with open(args.save+'.json', mode='r') as feedsjson:
+                with open(args.filename+'.json', mode='r') as feedsjson:
                     feeds = json.load(feedsjson)
-                with open(args.save+'.json', 'w') as feedsjson:
+                with open(args.filename+'.json', 'w') as feedsjson:
                     feeds.append(self.dict())
                     json.dump(feeds, feedsjson)
             else:
-                with open(args.save+'.json', mode='r') as feedsjson:
+                with open(args.filename+'.json', mode='r') as feedsjson:
                     feeds = json.load(feedsjson)
-                with open(args.save+'.json', 'w') as feedsjson:
+                with open(args.filename+'.json', 'w') as feedsjson:
                     feeds.append(self.dict())
                     json.dump(feeds, feedsjson)
 
@@ -1242,7 +1242,7 @@ def parse_args():
     parser.add_argument('--repeat', type=PARSER_TYPE_INT, help='Number of minutes to autorun the test')
     parser.add_argument('--server', help='Specify a server ID to test against',
                         type=PARSER_TYPE_INT)
-    parser.add_argument('--save', type=PARSER_TYPE_STR, help='File name where you want to save the results')
+    parser.add_argument('--filename', type=PARSER_TYPE_STR, help='File name where you want to save the results')
     parser.add_argument('--mini', help='URL of the Speedtest Mini server')
     parser.add_argument('--source', help='Source IP address to bind to')
     parser.add_argument('--timeout', default=10, type=PARSER_TYPE_INT,
@@ -1279,7 +1279,7 @@ def validate_optional_args(args):
         if getattr(args, arg, False) and info[1] is None:
             raise SystemExit('%s is not installed. --%s is '
                              'unavailable' % (info[0], arg))
-    if getattr(args, 'save'):
+    if getattr(args, 'filename'):
         if getattr(args, 'json') == getattr(args, 'csv'):
             raise SystemExit('Please specify data format by specifying --json or --csv')
 
