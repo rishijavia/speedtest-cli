@@ -1240,6 +1240,7 @@ def parse_args():
                         help='Display a list of speedtest.net servers '
                              'sorted by distance')
     parser.add_argument('--repeat', type=PARSER_TYPE_INT, help='Number of minutes to autorun the test')
+    parser.add_argument('--iter', type=PARSER_TYPE_INT, help='Number of iteration to run')
     parser.add_argument('--server', help='Specify a server ID to test against',
                         type=PARSER_TYPE_INT)
     parser.add_argument('--filename', type=PARSER_TYPE_STR, help='File name where you want to save the results')
@@ -1439,11 +1440,26 @@ def shell():
     if args.share:
         printer('Share results: %s' % results.share(), quiet)
 
+def runMultipleTimes():
+    minIter = 0
+    args = parse_args()
+    while(minIter < args.iter):
+        shell()
+        minIter += 1
+
 
 def main():
     try:
         args = parse_args()
-        if args.repeat:
+        if args.iter and args.repeat:
+            runMultipleTimes()
+            schedule.every(args.repeat).minutes.do(runMultipleTimes)
+            while 1:
+                schedule.run_pending()
+                time.sleep(1)
+        elif args.iter:
+            runMultipleTimes()
+        elif args.repeat:
             shell()
             schedule.every(args.repeat).minutes.do(shell)
             while 1:
